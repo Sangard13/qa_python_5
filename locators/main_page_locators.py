@@ -1,17 +1,18 @@
 from selenium.webdriver.common.by import By
 
-
 class MainPageLocators:
-    # Кнопки на главной странице
-    LOGIN_ACCOUNT_BUTTON = (By.XPATH, "//button[contains(text(), 'Войти в аккаунт')]")
-    PERSONAL_ACCOUNT_BUTTON = (By.XPATH, "//p[contains(text(), 'Личный Кабинет')]")
+    PERSONAL_ACCOUNT_BUTTON = (By.XPATH, "//p[text()='Личный Кабинет']")
+    LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти в аккаунт']")
 
     # URL
     BASE_URL = "https://stellarburgers.education-services.ru"
 
     # Кнопки авторизации
-    LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти в аккаунт']")  # Кнопка "Войти в аккаунт" на главной
-    PERSONAL_ACCOUNT_BUTTON = (By.XPATH, "//p[text()='Личный Кабинет']")  # Кнопка "Личный кабинет"
+    LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти в аккаунт']") # Кнопка "Войти в аккаунт" на главной
+    PERSONAL_ACCOUNT_BUTTON = (By.XPATH, "//p[text()='Личный Кабинет']")
+
+    #Локатор для главной страницы
+    PERSONAL_ACCOUNT_BUTTON = (By.XPATH, "//p[text()='Личный Кабинет']") # Кнопка "Личный кабинет"
 
     # Разделы конструктора
     BUNS_SECTION = (By.XPATH, "//span[text()='Булки']/parent::div")  # Раздел "Булки"
@@ -27,5 +28,5 @@ class MainPageLocators:
     # Конструктор
     CONSTRUCTOR_BUTTON = (By.XPATH, "//p[text()='Конструктор']")  # Кнопка "Конструктор"
 
-    # Индикатор авторизации
+    # Кнопка заказа, индексатор авторизации
     ORDER_BUTTON = (By.XPATH, "//button[text()='Оформить заказ']")  # Кнопка "Оформить заказ" (видна после авторизации)

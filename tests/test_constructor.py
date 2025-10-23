@@ -1,110 +1,80 @@
 import pytest
-import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from locators.login_page_locators import LoginPageLocators
 from locators.main_page_locators import MainPageLocators
-from locators.personal_account_locators import PersonalAccountLocators
-
-# Данные пользователя для тестов
-USER_NAME = "Aleksandr"
-USER_EMAIL = "Alex.Br_33@gmail.com"
-USER_PASSWORD = "1Qasw234RTy"
-BASE_URL = "https://stellarburgers.education-services.ru"
+from utils.data_generator import DataGenerator
+from helpers.auth_helper import AuthHelper
 
 
-class TestNavigationFromAccount:
+class TestConstructor:
 
-    def login_user(self, driver, wait):
-        """Вспомогательный метод для логина"""
-        print("Выполняю вход пользователя...")
-        driver.get(f"{BASE_URL}/login")
+    @pytest.fixture(autouse=True)
+    def setup(self, driver):
+        """Фикстура для настройки перед каждым тестом"""
+        self.driver = driver
+        self.wait = WebDriverWait(driver, 10)
+        self.base_url = DataGenerator.get_base_url()
+        self.auth_helper = AuthHelper(driver)
 
-        email_input = wait.until(EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT))
-        password_input = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
-        login_button = driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
+    @pytest.fixture
+    def authenticated_user(self):
+        """Фикстура для авторизованного пользователя на главной странице"""
+        self.auth_helper.login()
+        self.driver.get(f"{self.base_url}/")
 
-        email_input.send_keys(USER_EMAIL)
-        password_input.send_keys(USER_PASSWORD)
-        login_button.click()
+    @pytest.mark.parametrize("section,expected_text", [
+        ("buns", "Булки"),
+        ("sauces", "Соусы"),
+        ("fillings", "Начинки")
+    ])
+    def test_constructor_section_switch(self, authenticated_user, section, expected_text):
+        """Тест переключения между разделами конструктора"""
+        # Кликаем на нужный раздел
+        if section == "buns":
+            section_element = self.wait.until(
+                EC.element_to_be_clickable(MainPageLocators.BUNS_SECTION)
+            )
+        elif section == "sauces":
+            section_element = self.wait.until(
+                EC.element_to_be_clickable(MainPageLocators.SAUCES_SECTION)
+            )
+        elif section == "fillings":
+            section_element = self.wait.until(
+                EC.element_to_be_clickable(MainPageLocators.FILLINGS_SECTION)
+            )
 
-        # Ждем перехода на главную страницу
-        wait.until(EC.url_to_be(f"{BASE_URL}/"))
-        print("Пользователь успешно авторизован")
+        section_element.click()
 
-    def test_navigate_to_constructor_via_constructor_button(self, driver):
-        """Тест перехода из личного кабинета в конструктор по кнопке 'Конструктор'"""
-        wait = WebDriverWait(driver, 10)
+        # Проверяем что раздел активен
+        active_section = self.wait.until(
+            EC.visibility_of_element_located(MainPageLocators.ACTIVE_SECTION)
+        )
+        assert expected_text in active_section.text
 
-        # Логинимся
-        self.login_user(driver, wait)
-
-        # Переходим в личный кабинет
-        print("Переходим в личный кабинет...")
-        personal_account_button = wait.until(EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON))
-        personal_account_button.click()
-
-        # Ждем загрузки личного кабинета
-        wait.until(EC.url_contains("/account/profile"))
-        print("Личный кабинет загружен")
-
-        # Нажимаем кнопку "Конструктор"
-        print("Нажимаем кнопку 'Конструктор'...")
-        constructor_button = wait.until(EC.element_to_be_clickable(PersonalAccountLocators.CONSTRUCTOR_BUTTON))
-        constructor_button.click()
-
-        # Ждем перехода на главную страницу
-        wait.until(EC.url_to_be(f"{BASE_URL}/"))
-        print("Успешно перешли на главную страницу")
-
-        # Проверяем что мы на главной странице (конструктор)
-        order_button = wait.until(EC.visibility_of_element_located(MainPageLocators.ORDER_BUTTON))
-        assert order_button.is_displayed()
-        print("Кнопка 'Оформить заказ' отображается - мы в конструкторе")
-
-        # Дополнительная проверка - наличие разделов конструктора
-        buns_section = wait.until(EC.visibility_of_element_located(MainPageLocators.BUNS_SECTION))
-        sauces_section = driver.find_element(*MainPageLocators.SAUCES_SECTION)
-        fillings_section = driver.find_element(*MainPageLocators.FILLINGS_SECTION)
-
+    def test_constructor_buns_section_displayed(self, authenticated_user):
+        """Тест что раздел 'Булки' отображается"""
+        buns_section = self.wait.until(
+            EC.visibility_of_element_located(MainPageLocators.BUNS_SECTION)
+        )
         assert buns_section.is_displayed()
+
+    def test_constructor_sauces_section_displayed(self, authenticated_user):
+        """Тест что раздел 'Соусы' отображается"""
+        sauces_section = self.wait.until(
+            EC.visibility_of_element_located(MainPageLocators.SAUCES_SECTION)
+        )
         assert sauces_section.is_displayed()
+
+    def test_constructor_fillings_section_displayed(self, authenticated_user):
+        """Тест что раздел 'Начинки' отображается"""
+        fillings_section = self.wait.until(
+            EC.visibility_of_element_located(MainPageLocators.FILLINGS_SECTION)
+        )
         assert fillings_section.is_displayed()
-        print("Все разделы конструктора отображаются")
 
-    def test_navigate_to_constructor_via_logo(self, driver):
-        """Тест перехода из личного кабинета в конструктор по логотипу"""
-        wait = WebDriverWait(driver, 10)
-
-        # Логинимся
-        self.login_user(driver, wait)
-
-        # Переходим в личный кабинет
-        print("Переходим в личный кабинет...")
-        personal_account_button = wait.until(EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON))
-        personal_account_button.click()
-
-        # Ждем загрузки личного кабинета
-        wait.until(EC.url_contains("/account/profile"))
-        print("Личный кабинет загружен")
-
-        # Нажимаем на логотип Stellar Burgers
-        print("Нажимаем на логотип Stellar Burgers...")
-        logo = wait.until(EC.element_to_be_clickable(PersonalAccountLocators.LOGO))
-        logo.click()
-
-        # Ждем перехода на главную страницу
-        wait.until(EC.url_to_be(f"{BASE_URL}/"))
-        print("Успешно перешли на главную страницу по логотипу")
-
-        # Проверяем что мы на главной странице (конструктор)
-        order_button = wait.until(EC.visibility_of_element_located(MainPageLocators.ORDER_BUTTON))
-        assert order_button.is_displayed()
-        print("Кнопка 'Оформить заказ' отображается - мы в конструкторе")
-
-        # Проверяем URL
-        current_url = driver.current_url
-        assert current_url == f"{BASE_URL}/", f"Ожидали URL: {BASE_URL}/, получили: {current_url}"
-        print(f"URL корректный: {current_url}")
-
+    def test_constructor_default_active_section(self, authenticated_user):
+        """Тест что по умолчанию активен раздел 'Булки'"""
+        active_section = self.wait.until(
+            EC.visibility_of_element_located(MainPageLocators.ACTIVE_SECTION)
+        )
+        assert "Булки" in active_section.text

@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 
 # URL
-BASE_URL = "https://stellarburgers.education-services.ru"
+BASE_URL = "https://stellarburgers.education-services.ru/login"
 REGISTER_URL = f"{BASE_URL}/register"
 LOGIN_URL = f"{BASE_URL}/login"
 ACCOUNT_URL = f"{BASE_URL}/account"

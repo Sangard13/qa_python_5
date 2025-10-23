@@ -2,98 +2,104 @@ import pytest
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import time
+
+from data.user_data import UserData
+from locators.main_page_locators import MainPageLocators
+from locators.login_page_locators import LoginPageLocators
 
 
-class TestLoginDebug:
-    USER_EMAIL = "Alex.Br_33@gmail.com"
-    USER_PASSWORD = "1Qasw234RTy"
+class TestLogin:
 
-    def test_debug_personal_account(self, driver):
-        """Отладочная версия теста"""
+    def test_login_via_personal_account_button(self, driver):
+        """Вход через кнопку 'Личный кабинет' на главной странице"""
+        wait = WebDriverWait(driver, 15)
+        driver.get("https://stellarburgers.education-services.ru")
+
+        personal_account_button = wait.until(
+            EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
+        )
+        personal_account_button.click()
+
+        wait.until(EC.url_contains("/login"))
+
+        email_field = wait.until(EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT))
+        email_field.send_keys(UserData.USER_EMAIL)
+
+        password_field = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
+        password_field.send_keys(UserData.USER_PASSWORD)
+
+        login_button = driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
+        login_button.click()
+
+        wait.until(EC.url_contains("/account"))
+        assert "/account" in driver.current_url
+
+    def test_login_via_main_login_button(self, driver):
+        """Вход через кнопку 'Войти в аккаунт' на главной странице"""
         wait = WebDriverWait(driver, 15)
 
-        print("Начало отладочного теста")
-
-        # 1. Открываем главную страницу
         driver.get("https://stellarburgers.education-services.ru/")
-        print(f"Открыта страница: {driver.current_url}")
-        time.sleep(3)
 
-        # 2. Пробуем найти кнопку "Личный кабинет" разными способами
-        selectors = [
-            "//p[text()='Личный Кабинет']",
-            "//p[contains(text(), 'Личный')]",
-            "//a[contains(@href, 'account')]",
-            "//*[contains(text(), 'Личный кабинет')]",
-            "//*[contains(text(), 'Личный Кабинет')]"
-        ]
+        login_button = wait.until(
+            EC.element_to_be_clickable(MainPageLocators.LOGIN_BUTTON)
+        )
+        login_button.click()
 
-        button_found = False
-        for selector in selectors:
-            try:
-                button = driver.find_element(By.XPATH, selector)
-                print(f"Найдена кнопка с селектором: {selector}")
-                print(f"   Текст кнопки: {button.text}")
-                button.click()
-                print("🖱Кнопка нажата")
-                button_found = True
-                break
-            except:
-                print(f"Не найдено с селектором: {selector}")
-                continue
+        wait.until(EC.url_contains("/login"))
 
-        if not button_found:
-            print("Не удалось найти кнопку 'Личный кабинет'")
-            driver.save_screenshot("button_not_found.png")
-            return
+        email_field = wait.until(EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT))
+        email_field.send_keys(UserData.USER_EMAIL)
 
-        time.sleep(3)
-        print(f"Текущий URL после клика: {driver.current_url}")
+        password_field = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
+        password_field.send_keys(UserData.USER_PASSWORD)
 
-        # 3. Если нас перенаправило на логин - логинимся
-        if "/login" in driver.current_url:
-            print("Пытаемся войти в систему")
+        login_button = driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
+        login_button.click()
 
-            # Вводим email
-            try:
-                email_field = driver.find_element(By.NAME, "name")
-                email_field.send_keys(self.USER_EMAIL)
-                print("Email введен")
-            except:
-                print("Не удалось ввести email")
-                driver.save_screenshot("email_error.png")
-                return
+        wait.until(EC.url_contains("/account"))
+        assert "/account" in driver.current_url
 
-            # Вводим пароль
-            try:
-                password_field = driver.find_element(By.NAME, "Пароль")
-                password_field.send_keys(self.USER_PASSWORD)
-                print("Пароль введен")
-            except:
-                print("Не удалось ввести пароль")
-                driver.save_screenshot("password_error.png")
-                return
+    def test_login_with_invalid_email(self, driver):
+        """Вход с неверным email"""
+        wait = WebDriverWait(driver, 15)
 
-            # Нажимаем кнопку входа
-            try:
-                login_button = driver.find_element(By.XPATH, "//button[text()='Войти']")
-                login_button.click()
-                print("🖱Кнопка входа нажата")
-            except:
-                print("Не удалось нажать кнопку входа")
-                driver.save_screenshot("login_button_error.png")
-                return
+        driver.get("https://stellarburgers.education-services.ru/login")
 
-            time.sleep(5)
-            print(f"Текущий URL после логина: {driver.current_url}")
+        email_field = wait.until(EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT))
+        email_field.send_keys("invalid@email.com")
 
-            # Проверяем результат
-            if "/account" in driver.current_url:
-                print("УСПЕХ: Вошли в личный кабинет!")
-            else:
-                print(f"НЕ УДАЛОСЬ ВОЙТИ. Текущий URL: {driver.current_url}")
-                driver.save_screenshot("login_failed.png")
-        else:
-            print(f"Неожиданное поведение. URL: {driver.current_url}")
-            driver.save_screenshot("unexpected_behavior.png")
+        password_field = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
+        password_field.send_keys(UserData.USER_PASSWORD)
+
+        login_button = driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
+        login_button.click()
+
+        assert "/login" in driver.current_url
+
+    def test_login_with_invalid_password(self, driver):
+        """Вход с неверным паролем"""
+        wait = WebDriverWait(driver, 15)
+
+        driver.get("https://stellarburgers.education-services.ru/login")
+
+        email_field = wait.until(EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT))
+        email_field.send_keys(UserData.USER_EMAIL)
+
+        password_field = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
+        password_field.send_keys("wrongpassword")
+
+        login_button = driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
+        login_button.click()
+
+        assert "/login" in driver.current_url
+
+    def test_login_with_empty_credentials(self, driver):
+        """Вход с пустыми полями"""
+        wait = WebDriverWait(driver, 15)
+
+        driver.get("https://stellarburgers.education-services.ru/login")
+
+        login_button = wait.until(EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON))
+        login_button.click()
+
+        assert "/login" in driver.current_url
