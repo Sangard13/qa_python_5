@@ -1,110 +1,75 @@
 import pytest
 import random
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+from pages.registration_page import RegistrationPage
+from data.registration_data import RegistrationData
+from locators.registration_locators import RegistrationLocators
 
 
 class TestRegistration:
+    @pytest.fixture
+    def registration_page(self, driver):
+        """Фикстура для инициализации страницы регистрации перед каждым тестом"""
+        return RegistrationPage(driver)
 
-    # Локаторы
-    NAME_INPUT = (By.XPATH, "//label[contains(text(), 'Имя')]/following-sibling::input")
-    EMAIL_INPUT = (By.XPATH, "//label[contains(text(), 'Email')]/following-sibling::input")
-    PASSWORD_INPUT = (By.XPATH, "//input[@type='password']")
-    REGISTER_BUTTON = (By.XPATH, "//button[contains(text(), 'Зарегистрироваться')]")
-    PASSWORD_ERROR = (By.XPATH, "//p[contains(@class, 'input__error')]")
-    LOGIN_HEADER = (By.XPATH, "//h2[contains(text(), 'Вход')]")
-
-    # Тестовые данные
-    USER_NAME = "Александр"
-    USER_PASSWORD = "1Qasw234RTy"
-
-    def test_successful_registration(self, driver):
-        """Успешная регистрация с валидными данными"""
-        wait = WebDriverWait(driver, 10)
-
-        # Открываем страницу регистрации
-        driver.get("https://stellarburgers.education-services.ru/register")
-
-        # Генерируем уникальный email
+    def test_successful_registration(self, registration_page):
+        """Тест успешной регистрации с валидными данными"""
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
-        # Заполняем форму
-        wait.until(EC.visibility_of_element_located(self.NAME_INPUT)).send_keys(self.USER_NAME)
-        driver.find_element(*self.EMAIL_INPUT).send_keys(unique_email)
-        driver.find_element(*self.PASSWORD_INPUT).send_keys(self.USER_PASSWORD)
-        driver.find_element(*self.REGISTER_BUTTON).click()
+        # Открытие страницы регистрации
+        registration_page.open()
+        # Заполнение формы регистрации валидными данными
+        registration_page.register_user(
+            RegistrationData.USER_NAME,
+            unique_email,
+            RegistrationData.USER_PASSWORD
+        )
 
-        # Проверяем редирект на страницу логина
-        wait.until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url
-        print("Успешная регистрация: редирект на логин")
+        registration_page.wait_for_url_contains("/login")
+        assert "/login" in registration_page.get_current_url()
 
-    def test_registration_minimum_password(self, driver):
-        """Регистрация с паролем минимальной длины (6 символов)"""
-        wait = WebDriverWait(driver, 10)
-
-        driver.get("https://stellarburgers.education-services.ru/register")
+    def test_registration_minimum_password(self, registration_page):
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
-        # Заполняем форму с паролем из 6 символов
-        wait.until(EC.visibility_of_element_located(self.NAME_INPUT)).send_keys(self.USER_NAME)
-        driver.find_element(*self.EMAIL_INPUT).send_keys(unique_email)
-        driver.find_element(*self.PASSWORD_INPUT).send_keys("123456")  # Минимальная длина
-        driver.find_element(*self.REGISTER_BUTTON).click()
+        registration_page.open()
+        registration_page.register_user(
+            RegistrationData.USER_NAME,
+            unique_email,
+            "123456"
+        )
 
-        # Проверяем успешную регистрацию
-        wait.until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url
-        print("Регистрация с минимальным паролем успешна")
+        registration_page.wait_for_url_contains("/login")
+        assert "/login" in registration_page.get_current_url()
 
-    def test_registration_short_password_error(self, driver):
-        """Ошибка при регистрации с коротким паролем (<6 символов)"""
-        wait = WebDriverWait(driver, 10)
-
-        driver.get("https://stellarburgers.education-services.ru/register")
+    def test_registration_short_password_error(self, registration_page):
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
-        # Заполняем форму с коротким паролем
-        wait.until(EC.visibility_of_element_located(self.NAME_INPUT)).send_keys(self.USER_NAME)
-        driver.find_element(*self.EMAIL_INPUT).send_keys(unique_email)
-        driver.find_element(*self.PASSWORD_INPUT).send_keys("12345")  # 5 символов
-        driver.find_element(*self.REGISTER_BUTTON).click()
+        registration_page.open()
+        registration_page.register_user(
+            RegistrationData.USER_NAME,
+            unique_email,
+            "12345"
+        )
 
-        # Проверяем сообщение об ошибке
-        error_message = wait.until(EC.visibility_of_element_located(self.PASSWORD_ERROR))
-        assert error_message.is_displayed()
-        assert "Некорректный пароль" in error_message.text
-        print("Ошибка для короткого пароля отображается")
+        assert registration_page.is_password_error_visible()
+        assert "Некорректный пароль" in registration_page.get_password_error_text()
 
-    def test_registration_empty_name(self, driver):
-        """Проверка обязательности поля 'Имя'"""
-        wait = WebDriverWait(driver, 10)
-
-        driver.get("https://stellarburgers.education-services.ru/register")
+    def test_registration_empty_name(self, registration_page):
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
-        # Заполняем форму без имени
-        driver.find_element(*self.EMAIL_INPUT).send_keys(unique_email)
-        driver.find_element(*self.PASSWORD_INPUT).send_keys(self.USER_PASSWORD)
-        driver.find_element(*self.REGISTER_BUTTON).click()
+        registration_page.open()
+        registration_page.driver.find_element(*RegistrationLocators.EMAIL_INPUT).send_keys(unique_email)
+        registration_page.driver.find_element(*RegistrationLocators.PASSWORD_INPUT).send_keys(
+            RegistrationData.USER_PASSWORD)
+        registration_page.driver.find_element(*RegistrationLocators.REGISTER_BUTTON).click()
 
-        # Проверяем что остались на странице регистрации
-        assert "/register" in driver.current_url
-        print("Регистрация без имени заблокирована")
+        assert "/register" in registration_page.get_current_url()
 
-    def test_registration_invalid_email(self, driver):
-        """Проверка валидации email"""
-        wait = WebDriverWait(driver, 10)
+    def test_registration_invalid_email(self, registration_page):
+        registration_page.open()
+        registration_page.register_user(
+            RegistrationData.USER_NAME,
+            "invalid-email",
+            RegistrationData.USER_PASSWORD
+        )
 
-        driver.get("https://stellarburgers.education-services.ru/register")
-
-        # Заполняем форму с некорректным email
-        wait.until(EC.visibility_of_element_located(self.NAME_INPUT)).send_keys(self.USER_NAME)
-        driver.find_element(*self.EMAIL_INPUT).send_keys("invalid-email")  # Неправильный формат
-        driver.find_element(*self.PASSWORD_INPUT).send_keys(self.USER_PASSWORD)
-        driver.find_element(*self.REGISTER_BUTTON).click()
-
-        # Проверяем что остались на странице регистрации
-        assert "/register" in driver.current_url
-        print("Регистрация с некорректным email заблокирована")
+        assert "/register" in registration_page.get_current_url()
