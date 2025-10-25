@@ -1,3 +1,5 @@
+helpers / account_helper.py
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from data.user_data import UserData
@@ -8,8 +10,10 @@ class AccountHelper:
     """Вспомогательный класс для операций с аккаунтом"""
 
     @staticmethod
-    def login_user(driver, wait):
+    def login_user(driver, timeout=15):
         """Метод для логина пользователя"""
+        wait = WebDriverWait(driver, timeout)
+
         # Открываем страницу логина
         driver.get(f"{UserData.BASE_URL}/login")
 

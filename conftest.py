@@ -29,5 +29,29 @@ def driver():
     yield driver
     driver.quit()
 
+    @pytest.fixture
+    def driver():
+        """Фикстура для инициализации и закрытия браузера"""
+        chrome_options = Options()
+        chrome_options.add_argument("--window-size=1920,1080")
+
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        yield driver
+        driver.quit()
+
+    @pytest.fixture
+    def wait(driver):
+        """Фикстура для WebDriverWait"""
+        return WebDriverWait(driver, 15)
+
+    @pytest.fixture
+    def authenticated_user(driver, wait):
+        """Фикстура для аутентифицированного пользователя"""
+        from helpers.account_helper import AccountHelper
+        AccountHelper.login_user(driver, wait)
+        yield
+
 
 

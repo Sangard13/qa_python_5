@@ -1,3 +1,4 @@
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -10,6 +11,13 @@ class BasePage:
     def open(self):
         if self.url:
             self.driver.get(self.url)
+
+    def wait_for_url_contains(self, text, timeout=10):
+        wait = WebDriverWait(self.driver, timeout)
+        wait.until(EC.url_contains(text))
+
+    def get_current_url(self):
+        return self.driver.current_url
 
     def find_element(self, locator, timeout=10):
         wait = WebDriverWait(self.driver, timeout)

@@ -16,6 +16,7 @@ class PersonalAccountLocators:
     # Профиль
     PROFILE_BUTTON = (By.LINK_TEXT, "Профиль")  # Кнопка профиля
     LOGOUT_BUTTON = (By.XPATH, "//button[text()='Выход']")  # Кнопка выхода
+    PROFILE_SECTION = (By.XPATH, "//a[contains(@href, '/account/profile')]")
 
     # Дополнительные локаторы для личного кабинета
     ORDER_HISTORY = (By.LINK_TEXT, "История заказов")  # История заказов

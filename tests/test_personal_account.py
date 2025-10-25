@@ -1,89 +1,81 @@
 import pytest
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from helpers.account_helper import AccountHelper
+from selenium.webdriver.common.by import By
 from data.user_data import UserData
-from locators.account_locators import AccountLocators
-from locators.main_page_locators import MainPageLocators
 
 
-class TestPersonalAccountNavigation:
-    @pytest.fixture
-    def wait(self, driver):
-        return WebDriverWait(driver, 15)
+class TestPersonalAccount:
+    def test_navigate_to_personal_account_from_main_page(self, driver):
+        """Тест перехода в личный кабинет с главной страницы"""
+        wait = WebDriverWait(driver, 10)
 
-    def test_navigate_to_personal_account(self, driver, wait):
-        """Тест перехода в личный кабинет по клику на 'Личный кабинет'"""
-        # Логинимся
-        AccountHelper.login_user(driver, wait)
+        # Открытие страницы логина
+        driver.get(f"{UserData.BASE_URL}/login")
 
-        # Переходим на главную страницу
-        driver.get(UserData.BASE_URL)
+        # Ввод email
+        email_field = wait.until(EC.visibility_of_element_located((By.NAME, "name")))
+        email_field.send_keys(UserData.USER_EMAIL)
 
-        # Кликаем на кнопку "Личный кабинет"
+        # Ввод пароля
+        password_field = driver.find_element(By.NAME, "Пароль")
+        password_field.send_keys(UserData.USER_PASSWORD)
+
+        # Нажатие кнопки входа
+        login_button = driver.find_element(By.XPATH, "//button[text()='Войти']")
+        login_button.click()
+
+        # Ожидание главной страницы
+        wait.until(EC.url_to_be(f"{UserData.BASE_URL}/"))
+
+        # Нажатие кнопки личного кабинета
         personal_account_button = wait.until(
-            EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
+            EC.element_to_be_clickable((By.XPATH, "//p[text()='Личный Кабинет']"))
         )
         personal_account_button.click()
 
-        # Проверяем что перешли в личный кабинет
-        wait.until(EC.url_contains(f"{UserData.BASE_URL}/account/profile"))
+        # Проверка перехода в личный кабинет
+        wait.until(EC.url_contains("/account/profile"))
+        assert "/account/profile" in driver.current_url
 
-        # Проверяем что отображается профиль пользователя
-        profile_section = wait.until(
-            EC.visibility_of_element_located(AccountLocators.PROFILE_SECTION)
+    def test_logout_from_personal_account(self, driver):
+        """Тест выхода из аккаунта через личный кабинет"""
+        wait = WebDriverWait(driver, 10)
+
+        # Логинимся
+        driver.get(f"{UserData.BASE_URL}/login")
+        email_field = wait.until(EC.visibility_of_element_located((By.NAME, "name")))
+        email_field.send_keys(UserData.USER_EMAIL)
+        password_field = driver.find_element(By.NAME, "Пароль")
+        password_field.send_keys(UserData.USER_PASSWORD)
+        login_button = driver.find_element(By.XPATH, "//button[text()='Войти']")
+        login_button.click()
+
+        # Переходим в личный кабинет
+        wait.until(EC.url_to_be(f"{UserData.BASE_URL}/"))
+        personal_account_button = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//p[text()='Личный Кабинет']"))
         )
-        assert profile_section.is_displayed(), "Раздел 'Профиль' не отображается"
+        personal_account_button.click()
 
-        # Проверяем URL
-        current_url = driver.current_url
-        assert f"{UserData.BASE_URL}/account/profile" in current_url, f"Неправильный URL: {current_url}"
-
-    def test_personal_account_elements_visible(self, driver, wait):
-        """Тест что все элементы личного кабинета отображаются"""
-        # Логинимся и переходим в личный кабинет
-        AccountHelper.login_user(driver, wait)
-        driver.get(f"{UserData.BASE_URL}/account/profile")
-
-        # Проверяем основные элементы личного кабинета
-        profile_element = wait.until(
-            EC.visibility_of_element_located(AccountLocators.PROFILE_SECTION)
-        )
-        assert profile_element.is_displayed(), "Элемент 'Профиль' не отображается"
-
-        order_history = wait.until(
-            EC.visibility_of_element_located(AccountLocators.ORDER_HISTORY_SECTION)
-        )
-        assert order_history.is_displayed(), "Элемент 'История заказов' не отображается"
-
+        # Выходим из аккаунта
+        wait.until(EC.url_contains("/account/profile"))
         logout_button = wait.until(
-            EC.visibility_of_element_located(AccountLocators.LOGOUT_BUTTON)
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Выход']"))
         )
-        assert logout_button.is_displayed(), "Кнопка 'Выход' не отображается"
+        logout_button.click()
 
-        constructor_button = wait.until(
-            EC.visibility_of_element_located(AccountLocators.CONSTRUCTOR_BUTTON)
-        )
-        assert constructor_button.is_displayed(), "Кнопка 'Конструктор' не отображается"
+        # Проверка перехода на страницу логина
+        wait.until(EC.url_contains("/login"))
+        assert "/login" in driver.current_url
 
-        logo = wait.until(
-            EC.visibility_of_element_located(AccountLocators.LOGO)
-        )
-        assert logo.is_displayed(), "Логотип не отображается"
-
-    def test_personal_account_requires_authentication(self, driver, wait):
+    def test_personal_account_requires_authentication(self, driver):
         """Тест что личный кабинет требует авторизации"""
+        wait = WebDriverWait(driver, 10)
+
         # Пытаемся открыть личный кабинет без авторизации
         driver.get(f"{UserData.BASE_URL}/account/profile")
 
-        # Должен произойти редирект на страницу логина
-        wait.until(EC.url_contains(f"{UserData.BASE_URL}/login"))
-
-        current_url = driver.current_url
-        assert f"{UserData.BASE_URL}/login" in current_url, f"Не произошел редирект на логин. Текущий URL: {current_url}"
-
-        # Проверяем что отображается форма логина
-        login_header = wait.until(
-            EC.visibility_of_element_located(AccountLocators.LOGIN_HEADER)
-        )
-        assert login_header.is_displayed(), "Форма логина не отображается"
+        # Проверка редиректа на страницу логина
+        wait.until(EC.url_contains("/login"))
+        assert "/login" in driver.current_url

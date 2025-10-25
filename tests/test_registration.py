@@ -6,18 +6,13 @@ from locators.registration_locators import RegistrationLocators
 
 
 class TestRegistration:
-    @pytest.fixture
-    def registration_page(self, driver):
-        """Фикстура для инициализации страницы регистрации перед каждым тестом"""
-        return RegistrationPage(driver)
 
-    def test_successful_registration(self, registration_page):
+    def test_successful_registration(self, driver):
         """Тест успешной регистрации с валидными данными"""
+        registration_page = RegistrationPage(driver)
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
-        # Открытие страницы регистрации
         registration_page.open()
-        # Заполнение формы регистрации валидными данными
         registration_page.register_user(
             RegistrationData.USER_NAME,
             unique_email,
@@ -27,7 +22,9 @@ class TestRegistration:
         registration_page.wait_for_url_contains("/login")
         assert "/login" in registration_page.get_current_url()
 
-    def test_registration_minimum_password(self, registration_page):
+    def test_registration_minimum_password(self, driver):
+        """Тест регистрации с паролем минимальной длины"""
+        registration_page = RegistrationPage(driver)
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
         registration_page.open()
@@ -40,7 +37,9 @@ class TestRegistration:
         registration_page.wait_for_url_contains("/login")
         assert "/login" in registration_page.get_current_url()
 
-    def test_registration_short_password_error(self, registration_page):
+    def test_registration_short_password_error(self, driver):
+        """Тест ошибки при коротком пароле"""
+        registration_page = RegistrationPage(driver)
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
         registration_page.open()
@@ -53,7 +52,9 @@ class TestRegistration:
         assert registration_page.is_password_error_visible()
         assert "Некорректный пароль" in registration_page.get_password_error_text()
 
-    def test_registration_empty_name(self, registration_page):
+    def test_registration_empty_name(self, driver):
+        """Тест регистрации с пустым именем"""
+        registration_page = RegistrationPage(driver)
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
         registration_page.open()
@@ -64,7 +65,10 @@ class TestRegistration:
 
         assert "/register" in registration_page.get_current_url()
 
-    def test_registration_invalid_email(self, registration_page):
+    def test_registration_invalid_email(self, driver):
+        """Тест регистрации с невалидным email"""
+        registration_page = RegistrationPage(driver)
+
         registration_page.open()
         registration_page.register_user(
             RegistrationData.USER_NAME,

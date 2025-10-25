@@ -1,3 +1,3 @@
-from registration_page_locators import RegistrationPageLocators
+from .data_generator import DataGenerator
 
-__all__ = ['RegistrationPageLocators']
+__all__ = ['DataGenerator']
