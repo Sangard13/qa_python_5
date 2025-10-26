@@ -1,45 +1,21 @@
+from selenium.webdriver.support import expected_conditions as EC
 from .base_page import BasePage
 from locators.personal_account_locators import PersonalAccountLocators
+from data.urls import PROFILE_URL
+
 
 class PersonalAccountPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
-        self.url = "https://stellarburgers.education-services.ru/account/profile"
+        self.url = PROFILE_URL
 
     def open_profile(self):
         self.driver.get(self.url)
 
-    def is_profile_section_visible(self):
+    def is_element_visible(self, locator, timeout=5):
+        """Метод проверки видимости элемента"""
         try:
-            self.wait.until(EC.visibility_of_element_located(PersonalAccountLocators.PROFILE_SECTION))
-            return True
-        except:
-            return False
-
-    def is_order_history_visible(self):
-        try:
-            self.wait.until(EC.visibility_of_element_located(PersonalAccountLocators.ORDER_HISTORY))
-            return True
-        except:
-            return False
-
-    def is_logout_button_visible(self):
-        try:
-            self.wait.until(EC.visibility_of_element_located(PersonalAccountLocators.LOGOUT_BUTTON))
-            return True
-        except:
-            return False
-
-    def is_constructor_button_visible(self):
-        try:
-            self.wait.until(EC.visibility_of_element_located(PersonalAccountLocators.CONSTRUCTOR_BUTTON))
-            return True
-        except:
-            return False
-
-    def is_logo_visible(self):
-        try:
-            self.wait.until(EC.visibility_of_element_located(PersonalAccountLocators.LOGO))
+            self.wait.until(EC.visibility_of_element_located(locator))
             return True
         except:
             return False

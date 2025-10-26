@@ -1,5 +1,19 @@
 from selenium.webdriver.common.by import By
 
+class LoginPageLocators:
+    EMAIL_FIELD = (By.NAME, "name")
+    PASSWORD_FIELD = (By.NAME, "Пароль")
+    LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти']")
+
+
+class MainPageLocators:
+    PERSONAL_ACCOUNT_BUTTON = (By.XPATH, "//p[text()='Личный Кабинет']")
+
+
+class PersonalAccountLocators:
+    LOGOUT_BUTTON = (By.XPATH, "//button[text()='Выход']")
+    PROFILE_SECTION = (By.XPATH, "//a[contains(@class, 'Account_link') and contains(@href, '/profile')]")
+
 # URL
 BASE_URL = "https://stellarburgers.education-services.ru/login"
 REGISTER_URL = f"{BASE_URL}/register"

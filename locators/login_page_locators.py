@@ -1,6 +1,12 @@
 from selenium.webdriver.common.by import By
 
 class LoginPageLocators:
+    # Поля формы
+    EMAIL_FIELD = (By.NAME, "name")
+    PASSWORD_FIELD = (By.NAME, "Пароль")
+    LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти']")
+
+class LoginPageLocators:
     EMAIL_INPUT = (By.NAME, "name")
     PASSWORD_INPUT = (By.NAME, "Пароль")
     LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти']")

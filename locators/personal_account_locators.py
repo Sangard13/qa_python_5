@@ -25,3 +25,6 @@ class PersonalAccountLocators:
 
     # История заказов
     ORDER_HISTORY = (By.LINK_TEXT, "История заказов")  # История заказов
+
+    LOGOUT_BUTTON = (By.XPATH, "//button[text()='Выход']")
+    PROFILE_SECTION = (By.XPATH, "//a[text()='Профиль']")

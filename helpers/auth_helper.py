@@ -3,7 +3,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from locators.login_page_locators import LoginPageLocators
 from utils.data_generator import DataGenerator
 
-
 class AuthHelper:
     """Вспомогательный класс для работы с авторизацией"""
 

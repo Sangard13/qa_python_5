@@ -1,8 +1,8 @@
 import pytest
 import random
+from selenium.webdriver.support import expected_conditions as EC
 from pages.registration_page import RegistrationPage
 from data.registration_data import RegistrationData
-from locators.registration_locators import RegistrationLocators
 
 
 class TestRegistration:
@@ -19,8 +19,8 @@ class TestRegistration:
             RegistrationData.USER_PASSWORD
         )
 
-        registration_page.wait_for_url_contains("/login")
-        assert "/login" in registration_page.get_current_url()
+        registration_page.wait.until(EC.url_contains("/login"))
+        assert "/login" in driver.current_url
 
     def test_registration_minimum_password(self, driver):
         """Тест регистрации с паролем минимальной длины"""
@@ -34,8 +34,8 @@ class TestRegistration:
             "123456"
         )
 
-        registration_page.wait_for_url_contains("/login")
-        assert "/login" in registration_page.get_current_url()
+        registration_page.wait.until(EC.url_contains("/login"))
+        assert "/login" in driver.current_url
 
     def test_registration_short_password_error(self, driver):
         """Тест ошибки при коротком пароле"""
@@ -58,12 +58,13 @@ class TestRegistration:
         unique_email = f"test_{random.randint(100000, 999999)}@yandex.ru"
 
         registration_page.open()
-        registration_page.driver.find_element(*RegistrationLocators.EMAIL_INPUT).send_keys(unique_email)
-        registration_page.driver.find_element(*RegistrationLocators.PASSWORD_INPUT).send_keys(
-            RegistrationData.USER_PASSWORD)
-        registration_page.driver.find_element(*RegistrationLocators.REGISTER_BUTTON).click()
+        registration_page.register_user(
+            "",  # Пустое имя
+            unique_email,
+            RegistrationData.USER_PASSWORD
+        )
 
-        assert "/register" in registration_page.get_current_url()
+        assert "/register" in driver.current_url
 
     def test_registration_invalid_email(self, driver):
         """Тест регистрации с невалидным email"""
@@ -76,4 +77,4 @@ class TestRegistration:
             RegistrationData.USER_PASSWORD
         )
 
-        assert "/register" in registration_page.get_current_url()
+        assert "/register" in driver.current_url

@@ -1,10 +1,13 @@
+from selenium.webdriver.support import expected_conditions as EC
 from .base_page import BasePage
 from locators.login_page_locators import LoginPageLocators
+from data.urls import LOGIN_URL
+
 
 class LoginPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
-        self.url = "https://stellarburgers.education-services.ru/login"
+        self.url = LOGIN_URL
 
     def login(self, email, password):
         email_field = self.wait.until(EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT))
